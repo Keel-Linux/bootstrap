@@ -122,3 +122,18 @@ to build an arm64 forky bootstrap on v19.x TKLDev::
 
     make clean
     FAB_ARCH=arm64 RELEASE=debian/forky make install
+
+Package cache
+-------------
+
+The bootstrap is the slowest part of a fresh build because debootstrap
+downloads every package again. The cache reuses the downloads across
+builds::
+
+    # cache the .deb files across builds
+    make bootstrap DEBOOTSTRAP_CACHE=/var/cache/debootstrap
+
+The default is unchanged: without ``DEBOOTSTRAP_CACHE`` debootstrap
+downloads as before. The cache is the standard debootstrap
+``--cache-dir``. debootstrap still verifies the Release signature, so a
+cached package set is not trusted more than a download.
