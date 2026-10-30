@@ -65,6 +65,14 @@ VARIANT ?= minbase
 EXTRA_PKGS ?= initramfs-tools,gpg,gpg-agent,ca-certificates,lsb-release,zstd
 REMOVELIST ?= ./removelist
 
+# Optional package cache. It is opt-in: an empty cache keeps the old
+# behavior, and a clean build is unchanged.
+DEBOOTSTRAP_CACHE ?=
+DEBOOTSTRAP_OPTS ?=
+ifneq ($(strip $(DEBOOTSTRAP_CACHE)),)
+DEBOOTSTRAP_OPTS += --cache-dir=$(DEBOOTSTRAP_CACHE)
+endif
+
 # build output path
 O ?= build
 
@@ -117,6 +125,8 @@ help:
 	@echo '  removelist       # apply removelist'
 	@echo '  install          # rsymc bootstrap to FAB_PATH/bootstraps/CODENAME-ARCH'
 	@echo '  bootstrap.tar.gz # build tarball from bootstrap'
+	@echo
+	@echo '  DEBOOTSTRAP_CACHE  optional apt package cache (--cache-dir)'
 
 .PHONY: clean
 clean:
@@ -135,9 +145,9 @@ ifneq ($(HOST_CODENAME), $(CODENAME))
 endif
 
 ifdef ARM_ON_AMD
-	qemu-debootstrap --arch=$(FAB_ARCH) --variant=$(VARIANT) --include=$(EXTRA_PKGS) $(CODENAME) $O/bootstrap-$(FAB_ARCH) $(MIRROR)
+	qemu-debootstrap $(DEBOOTSTRAP_OPTS) --arch=$(FAB_ARCH) --variant=$(VARIANT) --include=$(EXTRA_PKGS) $(CODENAME) $O/bootstrap-$(FAB_ARCH) $(MIRROR)
 else
-	debootstrap --arch=$(FAB_ARCH) --variant=$(VARIANT) --include=$(EXTRA_PKGS) $(CODENAME) $O/bootstrap-$(FAB_ARCH) $(MIRROR)
+	debootstrap $(DEBOOTSTRAP_OPTS) --arch=$(FAB_ARCH) --variant=$(VARIANT) --include=$(EXTRA_PKGS) $(CODENAME) $O/bootstrap-$(FAB_ARCH) $(MIRROR)
 endif
 
 .PHONY: bootstrap-$(FAB_ARCH)
